@@ -219,6 +219,7 @@ func ProcessFile(c *gin.Context) {
 
 	// Get the file from the request
 	file, err := c.FormFile("file")
+	command := c.PostForm("command")
 	if err != nil {
 		log.Printf("Error getting file: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -228,13 +229,12 @@ func ProcessFile(c *gin.Context) {
 	}
 
 	// Get the command from form data
-	command := c.PostForm("command")
-	if command == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Command is required",
-		})
-		return
-	}
+	// if command == "" {
+	// 	c.JSON(http.StatusBadRequest, gin.H{
+	// 		"error": "Command is required",
+	// 	})
+	// 	return
+	// }
 
 	// Log file details
 	log.Printf("Received file: %s, size: %d", file.Filename, file.Size)
@@ -273,7 +273,7 @@ func ProcessFile(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message":  "File processed successfully",
 		"file":     file.Filename,
-		"command":  command,
+		"statusCode": http.StatusOK,
 		"response": response,
 	})
 } 
