@@ -7,7 +7,7 @@ class ApiService {
   final Dio _dio;
   final String baseUrl;
 
-  ApiService() : baseUrl = kIsWeb ? 'http://localhost:8080' : 'http://10.0.2.2:8080',
+  ApiService() : baseUrl = 'http://localhost:8080', 
         _dio = Dio(BaseOptions(
           baseUrl: kIsWeb ? 'http://localhost:8080' : 'http://10.0.2.2:8080',
           connectTimeout: const Duration(milliseconds: 30000),
@@ -58,6 +58,7 @@ class ApiService {
       });
       return response.data;
     } catch (e) {
+      print(e);
       throw _handleError(e);
     }
   }
