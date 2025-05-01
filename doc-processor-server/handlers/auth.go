@@ -15,24 +15,23 @@ const (
 	jwtSecret         = "your-secret-key" // In production, use environment variable
 )
 
-type LoginRequest struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
 type OTPRequest struct {
 	OTP string `json:"otp" binding:"required"`
 }
 
 func Login(c *gin.Context) {
-	var req LoginRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+	var credentials struct {
+		Username string `json:"username" binding:"required"`
+		Password string `json:"password" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&credentials); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
 		return
 	}
 
-	if req.Username != hardcodedUsername || req.Password != hardcodedPassword {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+	if credentials.Username != hardcodedUsername || credentials.Password != hardcodedPassword {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
 		return
 	}
 
@@ -50,6 +49,7 @@ func Login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Login successful",
+		"status":  http.StatusOK,
 		"token":   tokenString,
 	})
 }
@@ -81,4 +81,4 @@ func VerifyOTP(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"token": tokenString,
 	})
-} 
+}
