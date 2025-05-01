@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
+import '../services/api_service.dart';
+import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,6 +14,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  final ApiService _apiService = ApiService();
 
   @override
   void dispose() {
@@ -26,13 +27,43 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
+    print('Starting login process...');
 
     try {
-      await context.read<AuthProvider>().login(
+      print('Making API call with username: ${_usernameController.text}');
+      final response = await _apiService.login(
         _usernameController.text,
         _passwordController.text,
       );
+      
+      print('Login API response received: $response');
+      
+      // Check if response contains token
+      if (response['token'] == null) {
+        print('No token in response');
+        throw Exception('Login failed: No token received');
+      }
+      
+      print('Storing token: ${response['token']}');
+      // Store the token from the response
+      await _apiService.setToken(response['token']);
+      
+      // Verify token was stored
+      final storedToken = await _apiService.getToken();
+      print('Stored token verification: $storedToken');
+      print("mounted: $mounted");
+      if (mounted) {
+        print('Navigating to HomeScreen...');
+        // Navigate to home screen and remove all previous routes
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          (Route<dynamic> route) => false,
+        );
+      } else {
+        print('Widget not mounted, cannot navigate');
+      }
     } catch (e) {
+      print('Login error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString())),
