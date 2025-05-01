@@ -10,5 +10,6 @@ func InitializeRoutes(router *gin.Engine) {
 	api := router.Group("/api")
 	{
 		api.POST("/process", handlers.ProcessFile)
+		api.POST("/login", handlers.Login)
 	}
 } 
