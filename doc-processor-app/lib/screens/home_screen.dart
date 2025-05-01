@@ -53,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _token = prefs.getString('token');
+      print('Token loaded in HomeScreen: $_token');
     });
   }
 
@@ -160,113 +161,112 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<AuthProvider, DocumentProvider>(
-      builder: (context, authProvider, docProvider, _) {
-        if (!authProvider.isAuthenticated) {
-          return const LoginScreen();
-        }
+    print('Building HomeScreen...');
+    if (_token == null) {
+      print('No token found, returning to LoginScreen');
+      return const LoginScreen();
+    }
 
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Document Processor'),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.logout),
-                onPressed: _logout,
+    print('Building HomeScreen content');
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Document Processor'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: _logout,
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Icon(
+              Icons.upload_file,
+              size: 100,
+              color: Colors.blue,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: _pickFile,
+              icon: const Icon(Icons.file_upload),
+              label: const Text('Select File'),
+            ),
+            const SizedBox(height: 16),
+            if (_fileName != null) ...[
+              Text(
+                'Selected file: $_fileName',
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+            ],
+            TextField(
+              controller: _commandController,
+              decoration: const InputDecoration(
+                labelText: 'Enter Command',
+                hintText: 'e.g., summarize, extract main points',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: _suggestedCommands.map((cmd) {
+                return ActionChip(
+                  label: Text(cmd),
+                  onPressed: () {
+                    _commandController.text = cmd;
+                  },
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: _isLoading ? null : _processFile,
+              icon: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.auto_fix_high),
+              label: Text(_isLoading ? 'Processing...' : 'Process File'),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 16),
+              Text(
+                _error!,
+                style: const TextStyle(color: Colors.red),
               ),
             ],
-          ),
-          body: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Icon(
-                  Icons.upload_file,
-                  size: 100,
-                  color: Colors.blue,
+            if (_result != null) ...[
+              const SizedBox(height: 16),
+              const Text(
+                'Result:',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: _pickFile,
-                  icon: const Icon(Icons.file_upload),
-                  label: const Text('Select File'),
-                ),
-                const SizedBox(height: 16),
-                if (_fileName != null) ...[
-                  Text(
-                    'Selected file: $_fileName',
-                    style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  const SizedBox(height: 16),
-                ],
-                TextField(
-                  controller: _commandController,
-                  decoration: const InputDecoration(
-                    labelText: 'Enter Command',
-                    hintText: 'e.g., summarize, extract main points',
-                    border: OutlineInputBorder(),
+                  child: SingleChildScrollView(
+                    child: Text(_result!),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: _suggestedCommands.map((cmd) {
-                    return ActionChip(
-                      label: Text(cmd),
-                      onPressed: () {
-                        _commandController.text = cmd;
-                      },
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  onPressed: _isLoading ? null : _processFile,
-                  icon: _isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.auto_fix_high),
-                  label: Text(_isLoading ? 'Processing...' : 'Process File'),
-                ),
-                if (_error != null) ...[
-                  const SizedBox(height: 16),
-                  Text(
-                    _error!,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ],
-                if (_result != null) ...[
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Result:',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: SingleChildScrollView(
-                        child: Text(_result!),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        );
-      },
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 } 
