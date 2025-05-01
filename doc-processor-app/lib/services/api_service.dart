@@ -2,14 +2,15 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import '../config/app_config.dart';
 
 class ApiService {
   final Dio _dio;
   final String baseUrl;
 
-  ApiService() : baseUrl = kIsWeb ? 'http://localhost:8080' : 'http://10.0.2.2:8080',
+  ApiService() : baseUrl = AppConfig.apiUrl,
         _dio = Dio(BaseOptions(
-          baseUrl: kIsWeb ? 'http://localhost:8080' : 'http://10.0.2.2:8080',
+          baseUrl: kIsWeb ? AppConfig.apiUrl : AppConfig.apiUrl.replaceAll('localhost', '10.0.2.2'),
           connectTimeout: const Duration(milliseconds: 30000),
           receiveTimeout: const Duration(milliseconds: 30000),
         ));

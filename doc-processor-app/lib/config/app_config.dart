@@ -1,10 +1,21 @@
 class AppConfig {
-  static const String apiBaseUrl = 'http://localhost:8080';
-  
+  // API Configuration
+  static const String apiUrl = 'http://localhost:8080';
+  static const String apiKey = '';
+
+  // App Configuration
+  static const String appName = 'Doc Processor';
+  static const bool isDebug = true;
+  static const String logLevel = 'debug';
+
+  // Feature Flags
+  static const bool enableAnalytics = true;
+  static const bool enableCrashReporting = true;
+
   // API Endpoints
-  static const String loginEndpoint = '$apiBaseUrl/api/auth/login';
-  static const String uploadEndpoint = '$apiBaseUrl/api/documents/upload';
-  static const String processEndpoint = '$apiBaseUrl/api/documents/process';
+  static String get loginEndpoint => '$apiUrl/api/auth/login';
+  static String get uploadEndpoint => '$apiUrl/api/documents/upload';
+  static String get processEndpoint => '$apiUrl/api/documents/process';
   
   // File upload settings
   static const List<String> allowedFileTypes = ['pdf', 'jpg', 'jpeg', 'png'];

@@ -1,14 +1,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:html' as html;
 import 'package:flutter/foundation.dart' show kIsWeb;
+import '../config/app_config.dart';
 import '../providers/auth_provider.dart';
 import '../providers/document_provider.dart';
 import 'login_screen.dart';
@@ -22,7 +22,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  PlatformFile? _selectedFile;
+  XFile? _selectedFile;
   String? _fileName;
   bool _isLoading = false;
   String? _error;
@@ -58,16 +58,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _pickFile() async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-        withData: true,
-      );
+      final ImagePicker picker = ImagePicker();
+      final XFile? result = await picker.pickImage(source: ImageSource.gallery);
 
       if (result != null) {
         setState(() {
-          _selectedFile = result.files.first;
-          _fileName = result.files.first.name;
+          _selectedFile = result;
+          _fileName = result.name;
           _error = null;
           _result = null;
         });
@@ -101,7 +98,8 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      var uri = Uri.parse('http://localhost:8080/api/process');
+      final baseUrl = AppConfig.apiUrl;
+      var uri = Uri.parse('$baseUrl/api/process');
       var request = http.MultipartRequest('POST', uri);
       request.headers['Authorization'] = 'Bearer $_token';
       
@@ -109,10 +107,11 @@ class _HomeScreenState extends State<HomeScreen> {
       request.fields['command'] = _commandController.text;
 
       if (kIsWeb) {
+        final bytes = await _selectedFile!.readAsBytes();
         request.files.add(
           http.MultipartFile.fromBytes(
             'file',
-            _selectedFile!.bytes!,
+            bytes,
             filename: _selectedFile!.name,
           ),
         );
@@ -120,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
         request.files.add(
           await http.MultipartFile.fromPath(
             'file',
-            _selectedFile!.path!,
+            _selectedFile!.path,
           ),
         );
       }
