@@ -7,24 +7,38 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:provider/provider.dart';
 import 'package:doc_processor_app/main.dart';
+import 'package:doc_processor_app/providers/auth_provider.dart';
+import 'package:doc_processor_app/providers/document_provider.dart';
+import 'package:doc_processor_app/services/api_service.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
+
+@GenerateMocks([ApiService])
+import 'widget_test.mocks.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  late MockApiService mockApiService;
+
+  setUp(() {
+    mockApiService = MockApiService();
+    when(mockApiService.getToken()).thenAnswer((_) async => null);
+  });
+
+  testWidgets('App renders correctly', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AuthProvider(mockApiService)),
+          ChangeNotifierProvider(create: (_) => DocumentProvider()),
+        ],
+        child: const MyApp(),
+      ),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify that the app renders without errors
+    expect(find.byType(MyApp), findsOneWidget);
   });
 }
