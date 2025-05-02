@@ -35,29 +35,48 @@ class _LoginScreenState extends State<LoginScreen> {
         _usernameController.text,
         _passwordController.text,
       );
-      
+
       print('Login API response received: $response');
-      
+
       // Check if response contains token
       if (response['token'] == null) {
         print('No token in response');
         throw Exception('Login failed: No token received');
       }
-      
+
       print('Storing token: ${response['token']}');
       // Store the token from the response
       await _apiService.setToken(response['token']);
-      
+
       // Verify token was stored
       final storedToken = await _apiService.getToken();
       print('Stored token verification: $storedToken');
       print("mounted: $mounted");
       if (mounted) {
-        print('Navigating to HomeScreen...');
-        // Navigate to home screen and remove all previous routes
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-          (Route<dynamic> route) => false,
+        print('Showing success dialog...');
+        // Show success dialog
+        await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Success'),
+              content: const Text('Login successful!'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close dialog
+                    // Navigate to home screen and remove all previous routes
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                          builder: (context) => const HomeScreen()),
+                      (Route<dynamic> route) => false,
+                    );
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
         );
       } else {
         print('Widget not mounted, cannot navigate');
@@ -139,4 +158,4 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-} 
+}
