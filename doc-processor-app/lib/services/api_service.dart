@@ -1,18 +1,24 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 
 class ApiService {
-  final Dio _dio;
+  Dio _dio;
   final String baseUrl;
 
-  ApiService() : baseUrl = kIsWeb ? 'http://localhost:8080' : 'http://10.0.2.2:8080',
+  ApiService(SharedPreferences prefs) : baseUrl = kIsWeb ? 'http://localhost:8080' : 'http://10.0.2.2:8080',
         _dio = Dio(BaseOptions(
           baseUrl: kIsWeb ? 'http://localhost:8080' : 'http://10.0.2.2:8080',
           connectTimeout: const Duration(milliseconds: 30000),
           receiveTimeout: const Duration(milliseconds: 30000),
         ));
+
+  // Method to set Dio for testing purposes
+  @visibleForTesting
+  void setDioForTesting(Dio dio) {
+    _dio = dio;
+  }
 
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
